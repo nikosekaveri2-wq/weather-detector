@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Weather History</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            color: #222;
+        }
+
+        /* NAVBAR */
+
+        nav {
+            height: 58px;
+            background-color: #888;
+            display: flex;
+            align-items: center;
+            padding-left: 25px;
+        }
+
+        nav h2 {
+            margin: 0;
+            color: white;
+            font-size: 21px;
+        }
+
+        /* MAIN */
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 45px 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .page-title p {
+            color: #777;
+            margin-top: 8px;
+        }
+
+        /* WEATHER CARDS */
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
+
+        .weather-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid #777;
+        }
+
+        .weather-card h2 {
+            margin: 0 0 5px;
+            font-size: 22px;
+        }
+
+        .country {
+            color: #777;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* WEATHER DETAILS */
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .detail {
+            background-color: #f3f3f3;
+            padding: 12px;
+            border-radius: 7px;
+        }
+
+        .detail strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .detail span {
+            font-size: 14px;
+            color: #444;
+        }
+
+        /* TIME */
+
+        .searched-time {
+            margin-top: 18px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        /* BUTTONS */
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions a,
+        .actions button {
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background-color: #555;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #333;
+        }
+
+        .delete-btn {
+            background-color: #eee;
+            color: #333;
+            border: none;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #ddd;
+        }
+
+        /* EMPTY */
+
+        .empty {
+            background-color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+            color: #777;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 700px) {
+
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 30px 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <nav>
+        <h2>Weather Detector</h2>
+    </nav>
+
+
+    <!-- MAIN -->
+
+    <div class="container">
+
+        <div class="page-title">
+
+            <h1>Weather History</h1>
+
+            <p>Your previously searched weather records</p>
+
+        </div>
+
+
+        <div class="history-grid">
+
+            {% for search in searches %}
+
+                <div class="weather-card">
+
+                    <h2>{{ search.city }}</h2>
+
+                    <div class="country">
+                        {{ search.country }}
+                    </div>
+
+
+                    <div class="details">
+
+                        <div class="detail">
+                            <strong>Temperature</strong>
+                            <span>{{ search.temperature }} °C</span>
+                        </div>
+
+                        <div class="detail">
+                            <strong>Humidity</strong>
+                            <span>{{ search.humidity }} %</span>
+                        </div>
+
+                        <div class="detail">
+                            <strong>Pressure</strong>
+                            <span>{{ search.pressure }} hPa</span>
+                        </div>
+
+                        <div class="detail">
+                            <strong>Wind Speed</strong>
+                            <span>{{ search.wind_speed }} km/h</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="searched-time">
+                        Searched at: {{ search.searched_at }}
+                    </div>
+
+
+                    <div class="actions">
+
+                        <!-- EDIT -->
+
+                        <a
+                            href="{% url 'update_history' search.id %}"
+                            class="edit-btn"
+                        >
+                            Edit
+                        </a>
+
+
+                        <!-- DELETE -->
+
+                        <form
+                            method="POST"
+                            action="{% url 'delete_history' search.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="delete-btn"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="empty">
+
+                    <h2>No Weather History</h2>
+
+                    <p>No weather searches have been saved yet.</p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Update Weather</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            color: #222;
+        }
+
+        /* NAVBAR */
+
+        nav {
+            height: 58px;
+            background-color: #888;
+            display: flex;
+            align-items: center;
+            padding-left: 25px;
+        }
+
+        nav h2 {
+            margin: 0;
+            color: white;
+            font-size: 21px;
+        }
+
+        /* MAIN */
+
+        .page-container {
+            min-height: calc(100vh - 58px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 55px 20px;
+        }
+
+        /* UPDATE CARD */
+
+        .update-card {
+            width: 100%;
+            max-width: 620px;
+            background: white;
+            padding: 35px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
+            border-top: 5px solid #777;
+        }
+
+        .update-card h1 {
+            text-align: center;
+            margin: 0 0 8px;
+            font-size: 28px;
+            color: #222;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* ERROR MESSAGE */
+
+        .error-message {
+            color: #b91c1c;
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            padding: 11px 13px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* FORM */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 7px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background-color: #fafafa;
+        }
+
+        input:focus {
+            border-color: #777;
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(120, 120, 120, 0.12);
+        }
+
+        /* BUTTON */
+
+        .update-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #555;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .update-btn:hover {
+            background-color: #333;
+        }
+
+        /* BACK LINK */
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 600px) {
+
+            .page-container {
+                padding: 30px 15px;
+            }
+
+            .update-card {
+                padding: 28px 22px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <nav>
+        <h2>Weather Detector</h2>
+    </nav>
+
+
+    <!-- MAIN -->
+
+    <div class="page-container">
+
+        <div class="update-card">
+
+            <h1>Update Weather Record</h1>
+
+            <p class="subtitle">
+                Edit the saved weather information
+            </p>
+
+
+            <!-- ERROR MESSAGE -->
+
+            {% if error %}
+
+                <div class="error-message">
+                    {{ error }}
+                </div>
+
+            {% endif %}
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>City</label>
+
+                        <input
+                            type="text"
+                            name="city"
+                            value="{{ search.city }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Country</label>
+
+                        <input
+                            type="text"
+                            name="country"
+                            value="{{ search.country }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Temperature (°C)</label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            name="temperature"
+                            value="{{ search.temperature }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Humidity (%)</label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            name="humidity"
+                            value="{{ search.humidity }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Pressure (hPa)</label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            name="pressure"
+                            value="{{ search.pressure }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>Wind Speed (km/h)</label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            name="wind_speed"
+                            value="{{ search.wind_speed }}"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button type="submit" class="update-btn">
+                    Update Record
+                </button>
+
+            </form>
+
+
+            <a href="{% url 'history' %}" class="back-link">
+                ← Back to History
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

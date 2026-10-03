@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Weather Detector</title>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        color: #333;
+      }
+
+      .navbar {
+        background-color: #808080;
+        color: white;
+        padding: 18px 30px;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .container {
+        width: 80%;
+        max-width: 800px;
+        margin: 40px auto;
+        text-align: center;
+      }
+
+      .search-box {
+        margin-bottom: 30px;
+      }
+
+      .search-box input {
+        width: 60%;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .search-box button {
+        padding: 12px 22px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: #555;
+        color: white;
+        cursor: pointer;
+      }
+
+      .search-box button:hover {
+        background-color: #333;
+      }
+
+      .weather-card {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: left;
+      }
+
+      .weather-card h2 {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .weather-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .info {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+      }
+
+      .info strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .error {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #ffe5e5;
+        color: red;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      Weather Detector
+    </div>
+
+    <div class="container">
+
+      <!-- Search Form -->
+      <div class="search-box">
+
+        <form method="GET">
+
+          <input
+            type="text"
+            name="city"
+            placeholder="Enter city name"
+            value="{{ city|default:'' }}"
+            required
+          />
+
+          <button type="submit">
+            Search
+          </button>
+
+        </form>
+
+      </div>
+
+
+      <!-- Weather Data -->
+      {% if weather_data %}
+
+<div class="weather-card">
+
+    <h2>
+        Weather in {{ city }}
+    </h2>
+
+    <div class="weather-info">
+
+        <div class="info">
+            <strong>Country</strong>
+            {{ weather_data.country }}
+        </div>
+
+        <div class="info">
+            <strong>Country Code</strong>
+            {{ weather_data.country_code }}
+        </div>
+
+        <div class="info">
+            <strong>Temperature</strong>
+            {{ weather_data.current.temperature_2m }} °C
+        </div>
+
+        <div class="info">
+            <strong>Humidity</strong>
+            {{ weather_data.current.relative_humidity_2m }} %
+        </div>
+
+        <div class="info">
+            <strong>Pressure</strong>
+            {{ weather_data.current.pressure_msl }} hPa
+        </div>
+
+        <div class="info">
+            <strong>Wind Speed</strong>
+            {{ weather_data.current.wind_speed_10m }} km/h
+        </div>
+
+        <div class="info">
+            <strong>Latitude</strong>
+            {{ weather_data.latitude }}
+        </div>
+
+        <div class="info">
+            <strong>Longitude</strong>
+            {{ weather_data.longitude }}
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% if error %}
+
+<div class="error">
+    {{ error }}
+</div>
+
+{% endif %}
+
+
+      <!-- Error Message -->
+      {% if error %}
+
+      <div class="error">
+        {{ error }}
+      </div>
+
+      {% endif %}
+
+    </div>
+
+  </body>
+</html>
