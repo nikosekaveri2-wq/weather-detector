@@ -32,7 +32,7 @@ def home(request):
 
                 geo_data = geo_response.json()
 
-                if "results" in geo_data:
+                if geo_data.get("results"):
 
                     location = geo_data["results"][0]
 
@@ -112,15 +112,14 @@ def delete_history(request, id):
 
     if request.method == "POST":
 
-        search = WeatherSearch.objects.get(id=id)
+        search = get_object_or_404(WeatherSearch, id=id)
         search.delete()
 
     return redirect('history')
 
-
 def update_history(request, id):
 
-    search = WeatherSearch.objects.get(id=id)
+    search = get_object_or_404(WeatherSearch, id=id)
     error = None
 
     if request.method == "POST":
