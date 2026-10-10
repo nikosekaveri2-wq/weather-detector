@@ -1,6 +1,96 @@
+import math
+
 from django.shortcuts import render, redirect, get_object_or_404
 import requests
 from .models import WeatherSearch
+
+
+def _response_json(response):
+    try:
+        return response.json()
+    except ValueError:
+        return None
+
+
+def _finite_api_number(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+
+    try:
+        number = float(value)
+    except OverflowError:
+        return None
+
+    return number if math.isfinite(number) else None
+
+
+def _parse_geocoding_data(data):
+    if not isinstance(data, dict):
+        return None, "City lookup data was invalid."
+
+    results = data.get("results")
+    if not isinstance(results, list):
+        return None, "City lookup data was invalid."
+    if not results:
+        return None, "City not found."
+
+    location = results[0]
+    if not isinstance(location, dict):
+        return None, "City lookup data was invalid."
+
+    latitude = _finite_api_number(location.get("latitude"))
+    longitude = _finite_api_number(location.get("longitude"))
+    if (
+        latitude is None
+        or longitude is None
+        or not -90 <= latitude <= 90
+        or not -180 <= longitude <= 180
+    ):
+        return None, "City location data could not be loaded."
+
+    country = location.get("country", "")
+    country_code = location.get("country_code", "")
+    return {
+        "latitude": latitude,
+        "longitude": longitude,
+        "country": country if isinstance(country, str) else "",
+        "country_code": country_code if isinstance(country_code, str) else "",
+    }, None
+
+
+def _parse_weather_values(data):
+    if not isinstance(data, dict):
+        return None
+
+    current = data.get("current")
+    if not isinstance(current, dict):
+        return None
+
+    required_fields = (
+        "temperature_2m",
+        "relative_humidity_2m",
+        "pressure_msl",
+        "wind_speed_10m",
+    )
+    values = {}
+    for field in required_fields:
+        if field not in current:
+            return None
+        value = _finite_api_number(current[field])
+        if value is None:
+            return None
+        values[field] = value
+
+    if not -100 <= values["temperature_2m"] <= 70:
+        return None
+    if not 0 <= values["relative_humidity_2m"] <= 100:
+        return None
+    if not 800 <= values["pressure_msl"] <= 1200:
+        return None
+    if not 0 <= values["wind_speed_10m"] <= 500:
+        return None
+
+    return values
 
 
 def home(request):
@@ -11,9 +101,7 @@ def home(request):
 
     if city:
 
-        # Step 1: Find city coordinates
         geo_url = "https://geocoding-api.open-meteo.com/v1/search"
-
         geo_params = {
             "name": city,
             "count": 1,
@@ -29,30 +117,18 @@ def home(request):
             )
 
             if geo_response.status_code == 200:
-
-                geo_data = geo_response.json()
-
-                if geo_data.get("results"):
-
-                    location = geo_data["results"][0]
-
-                    latitude = location["latitude"]
-                    longitude = location["longitude"]
-
-                    country = location.get("country", "")
-                    country_code = location.get("country_code", "")
-
-                    # Step 2: Get weather
+                location, error = _parse_geocoding_data(
+                    _response_json(geo_response)
+                )
+                if error is None:
                     weather_url = "https://api.open-meteo.com/v1/forecast"
-
                     weather_params = {
-                        "latitude": latitude,
-                        "longitude": longitude,
+                        "latitude": location["latitude"],
+                        "longitude": location["longitude"],
                         "current": "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m",
                         "temperature_unit": "celsius",
                         "wind_speed_unit": "kmh"
                     }
-
                     weather_response = requests.get(
                         weather_url,
                         params=weather_params,
@@ -60,30 +136,22 @@ def home(request):
                     )
 
                     if weather_response.status_code == 200:
-
-                        weather_data = weather_response.json()
-
-                        weather_data["country"] = country
-                        weather_data["country_code"] = country_code
-                        weather_data["latitude"] = latitude
-                        weather_data["longitude"] = longitude
-
-                        # Step 3: Save weather data
-                        WeatherSearch.objects.create(
-                            city=city,
-                            country=country,
-                            temperature=weather_data["current"]["temperature_2m"],
-                            humidity=weather_data["current"]["relative_humidity_2m"],
-                            pressure=weather_data["current"]["pressure_msl"],
-                            wind_speed=weather_data["current"]["wind_speed_10m"]
-                        )
-
+                        weather_data = _response_json(weather_response)
+                        values = _parse_weather_values(weather_data)
+                        if values is None:
+                            error = "Weather data could not be loaded."
+                        else:
+                            weather_data.update(location)
+                            WeatherSearch.objects.create(
+                                city=city,
+                                country=location["country"],
+                                temperature=values["temperature_2m"],
+                                humidity=values["relative_humidity_2m"],
+                                pressure=values["pressure_msl"],
+                                wind_speed=values["wind_speed_10m"]
+                            )
                     else:
                         error = "Weather data could not be loaded."
-
-                else:
-                    error = "City not found."
-
             else:
                 error = "Unable to find the city."
 
